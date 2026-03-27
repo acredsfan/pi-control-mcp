@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -90,7 +91,34 @@ def focus_window(title: str) -> dict:
 def list_windows() -> dict:
     swaymsg = require_command("swaymsg")
     result = run_command([swaymsg, "-t", "get_tree"])
-    return {"backend": "wayland", "action": "list_windows", "tree": result.stdout}
+    parsed = json.loads(result.stdout)
+    windows: list[dict] = []
+
+    def visit(node: dict) -> None:
+        name = node.get("name")
+        rect = node.get("rect") or {}
+        if name:
+            windows.append(
+                {
+                    "id": node.get("id"),
+                    "title": name,
+                    "focused": bool(node.get("focused", False)),
+                    "x": int(rect.get("x", 0)),
+                    "y": int(rect.get("y", 0)),
+                    "width": int(rect.get("width", 0)),
+                    "height": int(rect.get("height", 0)),
+                    "app_id": node.get("app_id", ""),
+                }
+            )
+        for child in node.get("nodes", []):
+            if isinstance(child, dict):
+                visit(child)
+        for child in node.get("floating_nodes", []):
+            if isinstance(child, dict):
+                visit(child)
+
+    visit(parsed)
+    return {"backend": "wayland", "action": "list_windows", "windows": windows}
 
 
 def get_clipboard() -> dict:

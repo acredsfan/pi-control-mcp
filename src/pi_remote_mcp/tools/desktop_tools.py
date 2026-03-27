@@ -203,6 +203,12 @@ def get_backend_info() -> dict:
     }
 
 
+def annotated_snapshot(max_elements: int = 30, quality: int = 75, max_width: int = 0) -> dict:
+    from pi_remote_mcp.tools.ui_tools import annotated_snapshot as ui_annotated_snapshot
+
+    return ui_annotated_snapshot(max_elements=max_elements, quality=quality, max_width=max_width)
+
+
 def observe_screen() -> dict:
     backend = detect_backend()
     return {

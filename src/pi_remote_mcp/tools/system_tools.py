@@ -10,6 +10,7 @@ from pi_remote_mcp.tools.desktop_tools import get_clipboard as desktop_get_clipb
 from pi_remote_mcp.tools.desktop_tools import lock_screen as desktop_lock_screen
 from pi_remote_mcp.tools.desktop_tools import notification as desktop_notification
 from pi_remote_mcp.tools.desktop_tools import set_clipboard as desktop_set_clipboard
+from pi_remote_mcp.runtime_tasks import registry
 from pi_remote_mcp.utils.command_runner import find_command, require_command, run_command
 
 
@@ -125,6 +126,18 @@ def task_delete(name: str) -> dict:
         "name": name,
         "note": "Task deletion should remove the mapped systemd timer/cron entry in a later implementation pass",
     }
+
+
+def get_task_status(task_id: str = "") -> dict:
+    return {"tool": "GetTaskStatus", "task": registry.get(task_id)}
+
+
+def get_running_tasks() -> dict:
+    return {"tool": "GetRunningTasks", "tasks": registry.list(only_running=True)}
+
+
+def cancel_task(task_id: str) -> dict:
+    return {"tool": "CancelTask", "task_id": task_id, "cancelled": registry.cancel(task_id)}
 
 
 def event_log(log_name: str = "system", count: int = 20, level: str = "") -> dict:

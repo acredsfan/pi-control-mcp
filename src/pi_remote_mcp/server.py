@@ -6,6 +6,7 @@ from pi_remote_mcp.config import AppConfig
 from pi_remote_mcp.security.policy import PolicyInput, resolve_policy
 from pi_remote_mcp.tools.desktop_tools import (
     app,
+    annotated_snapshot,
     click,
     focus_window,
     get_backend_info,
@@ -15,7 +16,6 @@ from pi_remote_mcp.tools.desktop_tools import (
     minimize_all,
     move,
     notification,
-    observe_screen,
     scroll,
     set_clipboard,
     shortcut,
@@ -32,8 +32,25 @@ from pi_remote_mcp.tools.file_tools import (
     file_write,
 )
 from pi_remote_mcp.tools.network_tools import net_connections, ping, port_check, scrape
+from pi_remote_mcp.tools.registry_tools import reg_read, reg_write
+from pi_remote_mcp.tools.session_tools import (
+    detect_dialog,
+    get_active_window,
+    get_session_state,
+    list_monitors,
+    list_workspaces,
+    probe_capabilities,
+    reconnect_session,
+    switch_workspace,
+    watch_clipboard,
+    watch_window,
+    window_properties,
+)
 from pi_remote_mcp.tools.system_tools import (
+    cancel_task,
     event_log,
+    get_running_tasks,
+    get_task_status,
     get_system_info,
     kill_process,
     list_processes,
@@ -45,6 +62,7 @@ from pi_remote_mcp.tools.system_tools import (
     task_delete,
     task_list,
 )
+from pi_remote_mcp.tools import ui_tools
 
 
 def create_server(config: AppConfig) -> tuple[FastMCP, set[str]]:
@@ -62,7 +80,27 @@ def create_server(config: AppConfig) -> tuple[FastMCP, set[str]]:
     if "Snapshot" in policy.enabled_tools:
         mcp.tool(name="Snapshot")(snapshot)
     if "ObserveScreen" in policy.enabled_tools:
-        mcp.tool(name="ObserveScreen")(observe_screen)
+        mcp.tool(name="ObserveScreen")(ui_tools.observe_screen_tool)
+    if "AnnotatedSnapshot" in policy.enabled_tools:
+        mcp.tool(name="AnnotatedSnapshot")(annotated_snapshot)
+    if "OCR" in policy.enabled_tools:
+        mcp.tool(name="OCR")(ui_tools.ocr)
+    if "ScreenRecord" in policy.enabled_tools:
+        mcp.tool(name="ScreenRecord")(ui_tools.screen_record)
+    if "UIMap" in policy.enabled_tools:
+        mcp.tool(name="UIMap")(ui_tools.ui_map)
+    if "UIMapJson" in policy.enabled_tools:
+        mcp.tool(name="UIMapJson")(ui_tools.ui_map_json)
+    if "UIFind" in policy.enabled_tools:
+        mcp.tool(name="UIFind")(ui_tools.ui_find)
+    if "UIClick" in policy.enabled_tools:
+        mcp.tool(name="UIClick")(ui_tools.ui_click)
+    if "UIAct" in policy.enabled_tools:
+        mcp.tool(name="UIAct")(ui_tools.ui_act)
+    if "UISequence" in policy.enabled_tools:
+        mcp.tool(name="UISequence")(ui_tools.ui_sequence)
+    if "UIWatch" in policy.enabled_tools:
+        mcp.tool(name="UIWatch")(ui_tools.ui_watch)
     if "Click" in policy.enabled_tools:
         mcp.tool(name="Click")(click)
     if "Type" in policy.enabled_tools:
@@ -91,8 +129,30 @@ def create_server(config: AppConfig) -> tuple[FastMCP, set[str]]:
         mcp.tool(name="LockScreen")(lock_screen)
     if "ListWindows" in policy.enabled_tools:
         mcp.tool(name="ListWindows")(list_windows)
+    if "GetActiveWindow" in policy.enabled_tools:
+        mcp.tool(name="GetActiveWindow")(get_active_window)
+    if "WindowProperties" in policy.enabled_tools:
+        mcp.tool(name="WindowProperties")(window_properties)
+    if "ListWorkspaces" in policy.enabled_tools:
+        mcp.tool(name="ListWorkspaces")(list_workspaces)
+    if "SwitchWorkspace" in policy.enabled_tools:
+        mcp.tool(name="SwitchWorkspace")(switch_workspace)
+    if "ListMonitors" in policy.enabled_tools:
+        mcp.tool(name="ListMonitors")(list_monitors)
     if "GetBackendInfo" in policy.enabled_tools:
         mcp.tool(name="GetBackendInfo")(get_backend_info)
+    if "ProbeCapabilities" in policy.enabled_tools:
+        mcp.tool(name="ProbeCapabilities")(probe_capabilities)
+    if "DetectDialog" in policy.enabled_tools:
+        mcp.tool(name="DetectDialog")(detect_dialog)
+    if "WatchClipboard" in policy.enabled_tools:
+        mcp.tool(name="WatchClipboard")(watch_clipboard)
+    if "WatchWindow" in policy.enabled_tools:
+        mcp.tool(name="WatchWindow")(watch_window)
+    if "GetSessionState" in policy.enabled_tools:
+        mcp.tool(name="GetSessionState")(get_session_state)
+    if "ReconnectSession" in policy.enabled_tools:
+        mcp.tool(name="ReconnectSession")(reconnect_session)
 
     if "FileList" in policy.enabled_tools:
         mcp.tool(name="FileList")(file_list)
@@ -127,8 +187,18 @@ def create_server(config: AppConfig) -> tuple[FastMCP, set[str]]:
         mcp.tool(name="TaskCreate")(task_create)
     if "TaskDelete" in policy.enabled_tools:
         mcp.tool(name="TaskDelete")(task_delete)
+    if "GetTaskStatus" in policy.enabled_tools:
+        mcp.tool(name="GetTaskStatus")(get_task_status)
+    if "GetRunningTasks" in policy.enabled_tools:
+        mcp.tool(name="GetRunningTasks")(get_running_tasks)
+    if "CancelTask" in policy.enabled_tools:
+        mcp.tool(name="CancelTask")(cancel_task)
     if "EventLog" in policy.enabled_tools:
         mcp.tool(name="EventLog")(event_log)
+    if "RegRead" in policy.enabled_tools:
+        mcp.tool(name="RegRead")(reg_read)
+    if "RegWrite" in policy.enabled_tools:
+        mcp.tool(name="RegWrite")(reg_write)
     if "Ping" in policy.enabled_tools:
         mcp.tool(name="Ping")(ping)
     if "PortCheck" in policy.enabled_tools:

@@ -18,6 +18,7 @@ TIER_1_TOOLS = {
     "ListProcesses",
     "FileList",
     "FileSearch",
+    "RegRead",
     "ServiceList",
     "TaskList",
     "EventLog",
@@ -27,7 +28,18 @@ TIER_1_TOOLS = {
     "NetConnections",
     "Wait",
     "ListWindows",
+    "GetActiveWindow",
+    "WindowProperties",
+    "ListWorkspaces",
+    "ListMonitors",
     "GetBackendInfo",
+    "ProbeCapabilities",
+    "DetectDialog",
+    "WatchClipboard",
+    "WatchWindow",
+    "GetSessionState",
+    "GetTaskStatus",
+    "GetRunningTasks",
 }
 
 TIER_2_TOOLS = {
@@ -43,6 +55,9 @@ TIER_2_TOOLS = {
     "UIAct",
     "UISequence",
     "Scrape",
+    "SwitchWorkspace",
+    "ReconnectSession",
+    "CancelTask",
 }
 
 TIER_3_TOOLS = {
@@ -58,6 +73,7 @@ TIER_3_TOOLS = {
     "TaskDelete",
     "SetClipboard",
     "LockScreen",
+    "RegWrite",
 }
 
 ALL_KNOWN_TOOLS = TIER_1_TOOLS | TIER_2_TOOLS | TIER_3_TOOLS

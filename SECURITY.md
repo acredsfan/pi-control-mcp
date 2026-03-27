@@ -5,13 +5,13 @@
 ## Risk Tiers
 
 ### Tier 1 (Read-only, low risk) — default enabled
-Examples: `Snapshot`, `ObserveScreen`, `FileList`, `FileSearch`, `GetSystemInfo`, `ListProcesses`, `Ping`, `PortCheck`.
+Examples: `Snapshot`, `ObserveScreen`, `AnnotatedSnapshot`, `UIMap`, `UIFind`, `UIWatch`, `OCR`, `ScreenRecord`, `FileList`, `FileSearch`, `GetSystemInfo`, `ListProcesses`, `ServiceList`, `TaskList`, `EventLog`, `Ping`, `PortCheck`, `NetConnections`, `GetClipboard`.
 
 ### Tier 2 (Interactive, medium risk) — default enabled
-Examples: `Click`, `Type`, `Scroll`, `Move`, `Shortcut`, `FocusWindow`, `App`.
+Examples: `Click`, `Type`, `Scroll`, `Move`, `Shortcut`, `FocusWindow`, `MinimizeAll`, `App`, `UIClick`, `UIAct`, `UISequence`, `Scrape`, `ReconnectSession`, `SwitchWorkspace`.
 
 ### Tier 3 (Destructive, high risk) — default disabled
-Examples: `Shell`, `FileRead`, `FileWrite`, `FileUpload`, `FileDownload`, `KillProcess`, `ServiceStart`, `ServiceStop`.
+Examples: `Shell`, `FileRead`, `FileWrite`, `FileUpload`, `FileDownload`, `KillProcess`, `ServiceStart`, `ServiceStop`, `TaskCreate`, `TaskDelete`, `SetClipboard`, `LockScreen`, `RegWrite`.
 
 ## Controls
 
@@ -43,6 +43,15 @@ Resolution order: explicit include list > tier flags > defaults, then apply excl
 
 - Bearer token supported via `auth_key`
 - OAuth fields are available for managed client flows (`oauth_client_id`, `oauth_client_secret`)
+
+## Linux semantics and compatibility notes
+
+- Some tool names are intentionally kept compatible with `winremote-mcp` even though they map to Linux/Raspberry Pi equivalents.
+- `Service*` tools operate on `systemd` services.
+- `Task*` tools currently expose Linux-friendly task management semantics rather than Windows scheduled tasks.
+- `EventLog` reads from `journalctl` when available.
+- `RegRead` and `RegWrite` use `gsettings` / desktop settings namespaces when supported.
+- Advanced UI tools prefer accessibility/window metadata and fall back to screenshot/OCR-based heuristics when richer platform data is not available.
 
 ## Hardening checklist
 

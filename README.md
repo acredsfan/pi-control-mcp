@@ -8,6 +8,7 @@ This project is inspired by the design goals of `winremote-mcp`, adapted for Lin
 
 - MCP server powered by **FastMCP**
 - Targets **Wayland + X11** with graceful fallback
+- Implements the full `winremote-mcp` style tool surface with Linux/Raspberry Pi semantics
 - Tiered security model:
   - **Tier 1**: read-only/low-risk
   - **Tier 2**: interactive UI controls
@@ -15,6 +16,7 @@ This project is inspired by the design goals of `winremote-mcp`, adapted for Lin
 - Explicit tool inclusion/exclusion for fine-grained comfort control
 - Supports **stdio** and **HTTP** transport setup patterns
 - OAuth support scaffold included for v1 security roadmap
+- Adds Pi-native extras such as `ListWindows`, `GetActiveWindow`, `WindowProperties`, `ListWorkspaces`, `SwitchWorkspace`, `ListMonitors`, `ProbeCapabilities`, `DetectDialog`, `WatchClipboard`, `WatchWindow`, and `GetSessionState`
 
 ## Installation
 
@@ -87,6 +89,40 @@ For practical automation on Trixie, you may need:
 - `ydotool` (Wayland input injection)
 - `xdotool` and `xwd`/`import` for X11 workflows
 - `tesseract-ocr` for OCR
+- `wmctrl`, `xclip` / `xsel`, `notify-send`, `systemctl`, `journalctl`, `loginctl`, `xrandr`, `wlr-randr`, `swaymsg`
+
+## Tool categories
+
+### Desktop and semantic UI
+
+- `Snapshot`, `ObserveScreen`, `AnnotatedSnapshot`
+- `OCR`, `ScreenRecord`
+- `UIMap`, `UIMapJson`, `UIFind`, `UIClick`, `UIAct`, `UISequence`, `UIWatch`
+- `Click`, `Type`, `Scroll`, `Move`, `Shortcut`, `Wait`
+- `FocusWindow`, `MinimizeAll`, `App`
+
+### File, system, and network
+
+- `FileRead`, `FileWrite`, `FileList`, `FileSearch`, `FileDownload`, `FileUpload`
+- `GetClipboard`, `SetClipboard`, `ListProcesses`, `KillProcess`, `GetSystemInfo`, `Notification`, `LockScreen`
+- `ServiceList`, `ServiceStart`, `ServiceStop`, `TaskList`, `TaskCreate`, `TaskDelete`, `EventLog`
+- `RegRead`, `RegWrite`
+- `Ping`, `PortCheck`, `NetConnections`, `Scrape`
+
+### Pi-native session helpers
+
+- `ListWindows`, `GetActiveWindow`, `WindowProperties`
+- `ListWorkspaces`, `SwitchWorkspace`, `ListMonitors`
+- `GetBackendInfo`, `ProbeCapabilities`, `GetSessionState`
+- `DetectDialog`, `WatchClipboard`, `WatchWindow`
+- `ReconnectSession`, `GetTaskStatus`, `GetRunningTasks`, `CancelTask`
+
+## Linux mappings for Windows-oriented names
+
+- `Service*` tools use `systemctl`
+- `Task*` tools are exposed with Linux-friendly semantics and can be mapped to systemd timers / cron workflows
+- `EventLog` reads from `journalctl`
+- `RegRead` / `RegWrite` map to desktop settings via `gsettings` when available
 
 ## Security
 

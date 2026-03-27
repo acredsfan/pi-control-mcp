@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -75,7 +76,29 @@ def focus_window(title: str) -> dict:
 def list_windows() -> dict:
     binary = require_command("wmctrl")
     result = run_command([binary, "-lpG"])
-    return {"backend": "x11", "action": "list_windows", "windows": result.stdout}
+    windows = []
+    pattern = re.compile(
+        r"^(?P<id>0x[0-9a-fA-F]+)\s+(?P<desktop>-?\d+)\s+(?P<pid>\d+)\s+(?P<x>-?\d+)\s+(?P<y>-?\d+)\s+(?P<width>\d+)\s+(?P<height>\d+)\s+(?P<host>\S+)\s+(?P<title>.*)$"
+    )
+    for line in result.stdout.splitlines():
+        match = pattern.match(line.strip())
+        if not match:
+            continue
+        windows.append(
+            {
+                "id": match.group("id"),
+                "desktop": int(match.group("desktop")),
+                "pid": int(match.group("pid")),
+                "x": int(match.group("x")),
+                "y": int(match.group("y")),
+                "width": int(match.group("width")),
+                "height": int(match.group("height")),
+                "host": match.group("host"),
+                "title": match.group("title"),
+                "focused": False,
+            }
+        )
+    return {"backend": "x11", "action": "list_windows", "windows": windows}
 
 
 def get_clipboard() -> dict:
