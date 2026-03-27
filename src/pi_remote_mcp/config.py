@@ -16,6 +16,8 @@ class ServerConfig:
     port: int = 8090
     auth_key: str = ""
     transport: Transport = "stdio"
+    ssl_certfile: str = ""
+    ssl_keyfile: str = ""
 
 
 @dataclass(slots=True)
@@ -80,6 +82,8 @@ def _merge_config(cfg: AppConfig, raw: dict) -> None:
     cfg.server.port = int(server.get("port", cfg.server.port))
     cfg.server.auth_key = server.get("auth_key", cfg.server.auth_key)
     cfg.server.transport = server.get("transport", cfg.server.transport)
+    cfg.server.ssl_certfile = server.get("ssl_certfile", cfg.server.ssl_certfile)
+    cfg.server.ssl_keyfile = server.get("ssl_keyfile", cfg.server.ssl_keyfile)
 
     cfg.security.enable_tier3 = bool(security.get("enable_tier3", cfg.security.enable_tier3))
     cfg.security.disable_tier2 = bool(security.get("disable_tier2", cfg.security.disable_tier2))

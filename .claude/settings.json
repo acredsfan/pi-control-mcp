@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "pi-control": {
+      "type": "http",
+      "url": "https://<YOUR-PI-IP>:8090/mcp",
+      "headers": {
+        "Authorization": "Bearer your-secret-token"
+      }
+    }
+  }
+}

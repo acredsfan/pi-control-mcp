@@ -3,6 +3,10 @@ host = "127.0.0.1"
 port = 8090
 auth_key = ""
 transport = "stdio"
+# Enable HTTPS by providing paths to your TLS certificate and key files.
+# Generate a self-signed cert on the Pi with: ./scripts/gen-cert.sh
+ssl_certfile = ""
+ssl_keyfile = ""
 
 [security]
 enable_tier3 = false

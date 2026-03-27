@@ -17,6 +17,8 @@ def run(
     port: Optional[int] = typer.Option(None, help="Bind port"),
     transport: Optional[str] = typer.Option(None, help="stdio|streamable-http"),
     auth_key: Optional[str] = typer.Option(None, help="Bearer auth key"),
+    ssl_certfile: Optional[str] = typer.Option(None, help="Path to TLS certificate file (enables HTTPS)"),
+    ssl_keyfile: Optional[str] = typer.Option(None, help="Path to TLS private key file (enables HTTPS)"),
     enable_all: bool = typer.Option(False, help="Enable all tool tiers"),
     enable_tier3: bool = typer.Option(False, help="Enable high-risk Tier 3 tools"),
     disable_tier2: bool = typer.Option(False, help="Disable interactive Tier 2 tools"),
@@ -33,6 +35,10 @@ def run(
         cfg.server.transport = transport  # type: ignore[assignment]
     if auth_key is not None:
         cfg.server.auth_key = auth_key
+    if ssl_certfile is not None:
+        cfg.server.ssl_certfile = ssl_certfile
+    if ssl_keyfile is not None:
+        cfg.server.ssl_keyfile = ssl_keyfile
 
     if enable_all:
         cfg.security.enable_tier3 = True
@@ -49,15 +55,21 @@ def run(
 
     server, enabled_tools = create_server(cfg)
 
+    using_https = bool(cfg.server.ssl_certfile and cfg.server.ssl_keyfile)
+    scheme = "https" if using_https else "http"
     typer.echo(
-        f"Pi Control MCP starting | transport={cfg.server.transport} | host={cfg.server.host}:{cfg.server.port}"
+        f"Pi Control MCP starting | transport={cfg.server.transport} | {scheme}://{cfg.server.host}:{cfg.server.port}"
     )
     typer.echo(f"Enabled tools ({len(enabled_tools)}): {', '.join(sorted(enabled_tools))}")
 
     if cfg.server.transport == "stdio":
         server.run(transport="stdio")
     else:
-        server.run(transport="streamable-http", host=cfg.server.host, port=cfg.server.port)
+        ssl_kwargs: dict = {}
+        if using_https:
+            ssl_kwargs["ssl_certfile"] = cfg.server.ssl_certfile
+            ssl_kwargs["ssl_keyfile"] = cfg.server.ssl_keyfile
+        server.run(transport="streamable-http", host=cfg.server.host, port=cfg.server.port, **ssl_kwargs)
 
 
 def main() -> None:
