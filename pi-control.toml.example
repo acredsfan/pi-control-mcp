@@ -1,0 +1,16 @@
+[server]
+host = "127.0.0.1"
+port = 8090
+auth_key = ""
+transport = "stdio"
+
+[security]
+enable_tier3 = false
+disable_tier2 = false
+ip_allowlist = ["127.0.0.1/32"]
+oauth_client_id = ""
+oauth_client_secret = ""
+
+[tools]
+enable = []
+exclude = []

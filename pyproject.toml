@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pi-control-mcp"
+version = "0.1.0"
+description = "Raspberry Pi MCP server for desktop, file, and system control with tiered safety policies."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Pi Control MCP Contributors" }]
+keywords = ["mcp", "raspberry-pi", "automation", "wayland", "x11"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+]
+dependencies = [
+  "fastmcp>=3.0.0",
+  "pydantic>=2.8.0",
+  "typer>=0.12.0",
+  "pyautogui>=0.9.54",
+  "psutil>=6.0.0",
+  "python-dotenv>=1.0.1",
+]
+
+[project.optional-dependencies]
+ocr = ["pytesseract>=0.3.10", "Pillow>=10.0.0"]
+wayland = ["python-libinput>=0.1.0"]
+x11 = ["python-xlib>=0.33"]
+test = ["pytest>=8.0.0", "pytest-cov>=5.0.0", "ruff>=0.6.0", "mypy>=1.10.0"]
+
+[project.urls]
+Homepage = "https://github.com/acredsfan/pi-control-mcp"
+Repository = "https://github.com/acredsfan/pi-control-mcp"
+
+[project.scripts]
+pi-control-mcp = "pi_remote_mcp.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true
