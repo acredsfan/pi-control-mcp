@@ -1,20 +1,93 @@
 from __future__ import annotations
 
+from pathlib import Path
+from tempfile import NamedTemporaryFile
 
-def click(x: int, y: int, button: str = "left") -> dict:
+from pi_remote_mcp.utils.command_runner import require_command, run_command
+
+
+BUTTON_MAP = {"left": "1", "middle": "2", "right": "3"}
+
+
+def click(x: int, y: int, button: str = "left", action: str = "click") -> dict:
+    binary = require_command("xdotool")
+    if action == "hover":
+        run_command([binary, "mousemove", str(x), str(y)])
+    elif action == "double":
+        run_command([binary, "mousemove", str(x), str(y), "click", "--repeat", "2", BUTTON_MAP.get(button, "1")])
+    else:
+        run_command([binary, "mousemove", str(x), str(y), "click", BUTTON_MAP.get(button, "1")])
+    return {"backend": "x11", "action": action, "x": x, "y": y, "button": button}
+
+
+def type_text(text: str, clear: bool = False, press_enter: bool = False) -> dict:
+    binary = require_command("xdotool")
+    if clear:
+        run_command([binary, "key", "ctrl+a", "BackSpace"])
+    run_command([binary, "type", "--delay", "1", text])
+    if press_enter:
+        run_command([binary, "key", "Return"])
     return {
         "backend": "x11",
-        "action": "click",
-        "x": x,
-        "y": y,
-        "button": button,
-        "status": "queued",
+        "action": "type",
+        "chars": len(text),
+        "clear": clear,
+        "press_enter": press_enter,
     }
 
 
-def type_text(text: str) -> dict:
-    return {"backend": "x11", "action": "type", "chars": len(text), "status": "queued"}
-
-
 def snapshot() -> dict:
-    return {"backend": "x11", "action": "snapshot", "status": "not-implemented"}
+    binary = require_command("import", "gnome-screenshot")
+    with NamedTemporaryFile(suffix=".png", delete=False) as handle:
+        temp_path = Path(handle.name)
+    if Path(binary).name == "import":
+        run_command([binary, "-window", "root", str(temp_path)])
+    else:
+        run_command([binary, "-f", str(temp_path)])
+    return {"backend": "x11", "action": "snapshot", "path": str(temp_path), "exists": temp_path.exists()}
+
+
+def scroll(amount: int, horizontal: bool = False) -> dict:
+    binary = require_command("xdotool")
+    button = "6" if horizontal and amount > 0 else "7" if horizontal else "4" if amount > 0 else "5"
+    run_command([binary, "click", button])
+    return {"backend": "x11", "action": "scroll", "amount": amount, "horizontal": horizontal}
+
+
+def move(x: int, y: int) -> dict:
+    binary = require_command("xdotool")
+    run_command([binary, "mousemove", str(x), str(y)])
+    return {"backend": "x11", "action": "move", "x": x, "y": y}
+
+
+def shortcut(keys: list[str]) -> dict:
+    binary = require_command("xdotool")
+    run_command([binary, "key", "+".join(keys)])
+    return {"backend": "x11", "action": "shortcut", "keys": keys}
+
+
+def focus_window(title: str) -> dict:
+    binary = require_command("wmctrl")
+    run_command([binary, "-a", title])
+    return {"backend": "x11", "action": "focus_window", "title": title}
+
+
+def list_windows() -> dict:
+    binary = require_command("wmctrl")
+    result = run_command([binary, "-lpG"])
+    return {"backend": "x11", "action": "list_windows", "windows": result.stdout}
+
+
+def get_clipboard() -> dict:
+    binary = require_command("xclip", "xsel")
+    if Path(binary).name == "xclip":
+        result = run_command([binary, "-selection", "clipboard", "-o"])
+    else:
+        result = run_command([binary, "--clipboard", "--output"])
+    return {"backend": "x11", "action": "get_clipboard", "content": result.stdout}
+
+
+def notify(title: str, message: str) -> dict:
+    binary = require_command("notify-send")
+    run_command([binary, title, message])
+    return {"backend": "x11", "action": "notify", "title": title}

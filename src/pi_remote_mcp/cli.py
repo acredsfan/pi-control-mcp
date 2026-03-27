@@ -17,6 +17,7 @@ def run(
     port: Optional[int] = typer.Option(None, help="Bind port"),
     transport: Optional[str] = typer.Option(None, help="stdio|streamable-http"),
     auth_key: Optional[str] = typer.Option(None, help="Bearer auth key"),
+    enable_all: bool = typer.Option(False, help="Enable all tool tiers"),
     enable_tier3: bool = typer.Option(False, help="Enable high-risk Tier 3 tools"),
     disable_tier2: bool = typer.Option(False, help="Disable interactive Tier 2 tools"),
     tools: Optional[str] = typer.Option(None, help="Comma-separated tool include list"),
@@ -33,6 +34,9 @@ def run(
     if auth_key is not None:
         cfg.server.auth_key = auth_key
 
+    if enable_all:
+        cfg.security.enable_tier3 = True
+        cfg.security.disable_tier2 = False
     if enable_tier3:
         cfg.security.enable_tier3 = True
     if disable_tier2:

@@ -8,18 +8,26 @@ TIER_1_TOOLS = {
     "ObserveScreen",
     "AnnotatedSnapshot",
     "UIMap",
+    "UIMapJson",
     "UIFind",
     "UIWatch",
     "OCR",
     "ScreenRecord",
+    "GetClipboard",
     "GetSystemInfo",
     "ListProcesses",
     "FileList",
     "FileSearch",
+    "ServiceList",
+    "TaskList",
+    "EventLog",
+    "Notification",
     "Ping",
     "PortCheck",
     "NetConnections",
     "Wait",
+    "ListWindows",
+    "GetBackendInfo",
 }
 
 TIER_2_TOOLS = {
@@ -29,10 +37,12 @@ TIER_2_TOOLS = {
     "Scroll",
     "Shortcut",
     "FocusWindow",
+    "MinimizeAll",
     "App",
     "UIClick",
     "UIAct",
     "UISequence",
+    "Scrape",
 }
 
 TIER_3_TOOLS = {
@@ -44,6 +54,8 @@ TIER_3_TOOLS = {
     "KillProcess",
     "ServiceStart",
     "ServiceStop",
+    "TaskCreate",
+    "TaskDelete",
     "SetClipboard",
     "LockScreen",
 }

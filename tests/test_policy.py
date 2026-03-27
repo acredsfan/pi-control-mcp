@@ -29,3 +29,12 @@ def test_explicit_tools_override_tiers() -> None:
         )
     )
     assert resolved.enabled_tools == {"Snapshot", "Shell"}
+
+
+def test_policy_includes_new_clipboard_and_network_tools_by_default() -> None:
+    resolved = resolve_policy(
+        PolicyInput(enable_tier3=False, disable_tier2=False, explicit_tools=[], exclude_tools=[])
+    )
+    assert "GetClipboard" in resolved.enabled_tools
+    assert "Ping" in resolved.enabled_tools
+    assert "SetClipboard" not in resolved.enabled_tools
