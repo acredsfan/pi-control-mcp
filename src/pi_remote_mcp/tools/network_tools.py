@@ -18,9 +18,12 @@ def ping(host: str, count: int = 4) -> dict:
 
 
 def port_check(host: str, port: int, timeout: float = 5.0) -> dict:
-    with socket.create_connection((host, port), timeout=timeout):
-        pass
-    return {"tool": "PortCheck", "host": host, "port": port, "open": True, "timeout": timeout}
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            pass
+        return {"tool": "PortCheck", "host": host, "port": port, "open": True, "timeout": timeout}
+    except OSError as exc:
+        return {"tool": "PortCheck", "host": host, "port": port, "open": False, "timeout": timeout, "error": str(exc)}
 
 
 def net_connections(filter_text: str = "", limit: int = 50) -> dict:
