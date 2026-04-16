@@ -13,6 +13,22 @@ from pi_remote_mcp.tools.desktop_tools import set_clipboard as desktop_set_clipb
 from pi_remote_mcp.runtime_tasks import registry
 from pi_remote_mcp.utils.command_runner import find_command, require_command, run_command
 
+_CRON_TAG_PREFIX = "pi-control-mcp:"
+
+
+def _crontab_lines() -> list[str]:
+    binary = require_command("crontab")
+    result = run_command([binary, "-l"], check=False)
+    if result.returncode != 0 and "no crontab" in result.stderr.lower():
+        return []
+    return result.stdout.splitlines()
+
+
+def _write_crontab(lines: list[str]) -> None:
+    binary = require_command("crontab")
+    content = "\n".join(lines) + "\n" if lines else ""
+    proc = subprocess.run([binary, "-"], input=content, text=True, capture_output=True, check=True)  # noqa: S603
+
 
 def get_system_info() -> dict:
     return {
@@ -111,21 +127,24 @@ def task_list(filter_text: str = "") -> dict:
 
 
 def task_create(name: str, command: str, schedule: str) -> dict:
-    return {
-        "tool": "TaskCreate",
-        "name": name,
-        "command": command,
-        "schedule": schedule,
-        "note": "Task creation should be mapped to systemd timers or cron in a later implementation pass",
-    }
+    tag = f"# {_CRON_TAG_PREFIX}{name}"
+    lines = _crontab_lines()
+    for line in lines:
+        if tag in line:
+            return {"tool": "TaskCreate", "name": name, "status": "exists", "note": "Entry already present"}
+    lines.append(f"{schedule} {command}  {tag}")
+    _write_crontab(lines)
+    return {"tool": "TaskCreate", "name": name, "schedule": schedule, "command": command, "status": "created"}
 
 
 def task_delete(name: str) -> dict:
-    return {
-        "tool": "TaskDelete",
-        "name": name,
-        "note": "Task deletion should remove the mapped systemd timer/cron entry in a later implementation pass",
-    }
+    tag = f"# {_CRON_TAG_PREFIX}{name}"
+    lines = _crontab_lines()
+    new_lines = [l for l in lines if tag not in l]
+    if len(new_lines) == len(lines):
+        return {"tool": "TaskDelete", "name": name, "status": "not_found"}
+    _write_crontab(new_lines)
+    return {"tool": "TaskDelete", "name": name, "status": "deleted"}
 
 
 def get_task_status(task_id: str = "") -> dict:
