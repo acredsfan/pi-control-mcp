@@ -1,24 +1,35 @@
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 from pi_remote_mcp.utils.command_runner import (
     CommandExecutionError,
     CommandUnavailableError,
+    find_command,
     require_command,
     run_command,
 )
 
 
 BUTTON_MAP = {"left": "0xC0", "middle": "0xC1", "right": "0xC2"}
+_YDOTOOL_SOCKET = os.getenv("YDOTOOL_SOCKET", "/run/user/1000/.ydotool_socket")
 
 
 def _run_ydotool(*args: str) -> dict:
     binary = require_command("ydotool")
-    result = run_command([binary, *args])
-    return {"command": result.command, "stdout": result.stdout, "stderr": result.stderr}
+    env = {**os.environ, "YDOTOOL_SOCKET": _YDOTOOL_SOCKET}
+    result = subprocess.run(  # noqa: S603
+        [binary, *args],
+        capture_output=True,
+        text=True,
+        env=env,
+        timeout=10,
+    )
+    return {"command": [binary, *args], "stdout": result.stdout, "stderr": result.stderr}
 
 
 def click(x: int, y: int, button: str = "left", action: str = "click") -> dict:
@@ -83,42 +94,79 @@ def shortcut(keys: list[str]) -> dict:
 
 
 def focus_window(title: str) -> dict:
-    swaymsg = require_command("swaymsg")
-    result = run_command([swaymsg, f'[title="{title}"]', "focus"])
-    return {"backend": "wayland", "action": "focus_window", "title": title, "stdout": result.stdout}
+    swaymsg = find_command("swaymsg")
+    if swaymsg:
+        result = run_command([swaymsg, f'[title="{title}"]', "focus"])
+        return {"backend": "wayland", "action": "focus_window", "title": title, "stdout": result.stdout}
+    hyprctl = find_command("hyprctl")
+    if hyprctl:
+        result = run_command([hyprctl, "dispatch", "focuswindow", f"title:{title}"])
+        return {"backend": "wayland", "action": "focus_window", "title": title, "stdout": result.stdout}
+    return {
+        "backend": "wayland",
+        "action": "focus_window",
+        "error": "No compositor IPC tool available (swaymsg, hyprctl). Window management requires Sway or Hyprland.",
+    }
 
 
 def list_windows() -> dict:
-    swaymsg = require_command("swaymsg")
-    result = run_command([swaymsg, "-t", "get_tree"])
-    parsed = json.loads(result.stdout)
-    windows: list[dict] = []
+    swaymsg = find_command("swaymsg")
+    if swaymsg:
+        result = run_command([swaymsg, "-t", "get_tree"])
+        parsed = json.loads(result.stdout)
+        windows: list[dict] = []
 
-    def visit(node: dict) -> None:
-        name = node.get("name")
-        rect = node.get("rect") or {}
-        if name:
-            windows.append(
-                {
-                    "id": node.get("id"),
-                    "title": name,
-                    "focused": bool(node.get("focused", False)),
-                    "x": int(rect.get("x", 0)),
-                    "y": int(rect.get("y", 0)),
-                    "width": int(rect.get("width", 0)),
-                    "height": int(rect.get("height", 0)),
-                    "app_id": node.get("app_id", ""),
-                }
-            )
-        for child in node.get("nodes", []):
-            if isinstance(child, dict):
-                visit(child)
-        for child in node.get("floating_nodes", []):
-            if isinstance(child, dict):
-                visit(child)
+        def visit(node: dict) -> None:
+            name = node.get("name")
+            rect = node.get("rect") or {}
+            if name:
+                windows.append(
+                    {
+                        "id": node.get("id"),
+                        "title": name,
+                        "focused": bool(node.get("focused", False)),
+                        "x": int(rect.get("x", 0)),
+                        "y": int(rect.get("y", 0)),
+                        "width": int(rect.get("width", 0)),
+                        "height": int(rect.get("height", 0)),
+                        "app_id": node.get("app_id", ""),
+                    }
+                )
+            for child in node.get("nodes", []):
+                if isinstance(child, dict):
+                    visit(child)
+            for child in node.get("floating_nodes", []):
+                if isinstance(child, dict):
+                    visit(child)
 
-    visit(parsed)
-    return {"backend": "wayland", "action": "list_windows", "windows": windows}
+        visit(parsed)
+        return {"backend": "wayland", "action": "list_windows", "windows": windows}
+
+    hyprctl = find_command("hyprctl")
+    if hyprctl:
+        result = run_command([hyprctl, "-j", "clients"])
+        clients = json.loads(result.stdout)
+        windows = [
+            {
+                "id": c.get("address"),
+                "title": c.get("title", ""),
+                "focused": bool(c.get("focusHistoryID", 1) == 0),
+                "x": int(c.get("at", [0, 0])[0]),
+                "y": int(c.get("at", [0, 0])[1]),
+                "width": int(c.get("size", [0, 0])[0]),
+                "height": int(c.get("size", [0, 0])[1]),
+                "app_id": c.get("class", ""),
+            }
+            for c in clients
+        ]
+        return {"backend": "wayland", "action": "list_windows", "windows": windows}
+
+    return {
+        "backend": "wayland",
+        "action": "list_windows",
+        "error": "No compositor IPC tool available (swaymsg, hyprctl). Window listing requires Sway or Hyprland.",
+        "windows": [],
+    }
 
 
 def get_clipboard() -> dict:
@@ -129,15 +177,16 @@ def get_clipboard() -> dict:
 
 def set_clipboard(text: str) -> dict:
     binary = require_command("wl-copy")
-    result = run_command([binary], check=False, text=True)
-    return {
-        "backend": "wayland",
-        "action": "set_clipboard",
-        "content_length": len(text),
-        "note": "wl-copy invocation requires stdin plumbing; use desktop tool wrapper for direct subprocess handling",
-        "stdout": result.stdout,
-        "stderr": result.stderr,
-    }
+    result = subprocess.run(  # noqa: S603
+        [binary],
+        input=text,
+        capture_output=True,
+        text=True,
+        timeout=10,
+    )
+    if result.returncode != 0:
+        return {"backend": "wayland", "action": "set_clipboard", "error": result.stderr.strip()}
+    return {"backend": "wayland", "action": "set_clipboard", "content_length": len(text)}
 
 
 def notify(title: str, message: str) -> dict:
