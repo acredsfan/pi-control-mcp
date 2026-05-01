@@ -40,6 +40,19 @@ TIER_1_TOOLS = {
     "GetSessionState",
     "GetTaskStatus",
     "GetRunningTasks",
+    "MemoryRecent",
+    "MemorySearch",
+    "MemoryShow",
+    "MemoryFiles",
+    "MemoryErrors",
+    "MemoryHealth",
+    "MemorySchemaCheck",
+    "ServiceHealthReport",
+    "JournalSearch",
+    "MowerRuntimeSnapshot",
+    "HardwareProbe",
+    "NetworkFailoverStatus",
+    "GitProjectState",
 }
 
 TIER_2_TOOLS = {
@@ -58,6 +71,7 @@ TIER_2_TOOLS = {
     "SwitchWorkspace",
     "ReconnectSession",
     "CancelTask",
+    "MemoryNoteAdd",
 }
 
 TIER_3_TOOLS = {

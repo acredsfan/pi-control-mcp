@@ -32,6 +32,8 @@ from pi_remote_mcp.tools.file_tools import (
     file_write,
 )
 from pi_remote_mcp.tools.network_tools import net_connections, ping, port_check, scrape
+from pi_remote_mcp.tools.memory_tools import memory_errors, memory_files, memory_health, memory_note_add, memory_recent, memory_schema_check, memory_search, memory_show
+from pi_remote_mcp.tools.mower_tools import git_project_state, hardware_probe, journal_search, mower_runtime_snapshot, network_failover_status, service_health_report
 from pi_remote_mcp.tools.registry_tools import reg_read, reg_write
 from pi_remote_mcp.tools.session_tools import (
     detect_dialog,
@@ -207,5 +209,35 @@ def create_server(config: AppConfig) -> tuple[FastMCP, set[str]]:
         mcp.tool(name="NetConnections")(net_connections)
     if "Scrape" in policy.enabled_tools:
         mcp.tool(name="Scrape")(scrape)
+
+    if "MemoryRecent" in policy.enabled_tools:
+        mcp.tool(name="MemoryRecent")(memory_recent)
+    if "MemorySearch" in policy.enabled_tools:
+        mcp.tool(name="MemorySearch")(memory_search)
+    if "MemoryShow" in policy.enabled_tools:
+        mcp.tool(name="MemoryShow")(memory_show)
+    if "MemoryFiles" in policy.enabled_tools:
+        mcp.tool(name="MemoryFiles")(memory_files)
+    if "MemoryErrors" in policy.enabled_tools:
+        mcp.tool(name="MemoryErrors")(memory_errors)
+    if "MemoryNoteAdd" in policy.enabled_tools:
+        mcp.tool(name="MemoryNoteAdd")(memory_note_add)
+    if "MemoryHealth" in policy.enabled_tools:
+        mcp.tool(name="MemoryHealth")(memory_health)
+    if "MemorySchemaCheck" in policy.enabled_tools:
+        mcp.tool(name="MemorySchemaCheck")(memory_schema_check)
+
+    if "ServiceHealthReport" in policy.enabled_tools:
+        mcp.tool(name="ServiceHealthReport")(service_health_report)
+    if "JournalSearch" in policy.enabled_tools:
+        mcp.tool(name="JournalSearch")(journal_search)
+    if "MowerRuntimeSnapshot" in policy.enabled_tools:
+        mcp.tool(name="MowerRuntimeSnapshot")(mower_runtime_snapshot)
+    if "HardwareProbe" in policy.enabled_tools:
+        mcp.tool(name="HardwareProbe")(hardware_probe)
+    if "NetworkFailoverStatus" in policy.enabled_tools:
+        mcp.tool(name="NetworkFailoverStatus")(network_failover_status)
+    if "GitProjectState" in policy.enabled_tools:
+        mcp.tool(name="GitProjectState")(git_project_state)
 
     return mcp, policy.enabled_tools
