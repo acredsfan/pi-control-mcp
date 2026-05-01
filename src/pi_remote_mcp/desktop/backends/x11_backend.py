@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from pi_remote_mcp.utils.command_runner import require_command, run_command
+from pi_remote_mcp.utils.command_runner import CommandExecutionError, CommandUnavailableError, require_command, run_command
 
 
 BUTTON_MAP = {"left": "1", "middle": "2", "right": "3"}
@@ -38,14 +38,27 @@ def type_text(text: str, clear: bool = False, press_enter: bool = False) -> dict
 
 
 def snapshot() -> dict:
-    binary = require_command("import", "gnome-screenshot")
     with NamedTemporaryFile(suffix=".png", delete=False) as handle:
         temp_path = Path(handle.name)
-    if Path(binary).name == "import":
-        run_command([binary, "-window", "root", str(temp_path)])
-    else:
-        run_command([binary, "-f", str(temp_path)])
-    return {"backend": "x11", "action": "snapshot", "path": str(temp_path), "exists": temp_path.exists()}
+
+    # Try import (ImageMagick) or gnome-screenshot first
+    try:
+        binary = require_command("import", "gnome-screenshot")
+        if Path(binary).name == "import":
+            run_command([binary, "-window", "root", str(temp_path)])
+        else:
+            run_command([binary, "-f", str(temp_path)])
+        return {"backend": "x11", "action": "snapshot", "path": str(temp_path), "exists": temp_path.exists()}
+    except (CommandUnavailableError, CommandExecutionError):
+        pass
+
+    # Fall back to scrot
+    try:
+        scrot_bin = require_command("scrot")
+        run_command([scrot_bin, str(temp_path)])
+        return {"backend": "x11", "action": "snapshot", "path": str(temp_path), "exists": temp_path.exists()}
+    except (CommandUnavailableError, CommandExecutionError) as exc:
+        return {"backend": "x11", "action": "snapshot", "error": str(exc), "path": ""}
 
 
 def scroll(amount: int, horizontal: bool = False) -> dict:
