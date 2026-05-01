@@ -127,3 +127,8 @@ For practical automation on Trixie, you may need:
 ## Security
 
 See [`SECURITY.md`](SECURITY.md) for deployment guidance and risk mitigations.
+
+
+## Pi Memory and mower diagnostics
+
+This project now includes local SQLite-backed Pi Memory tools (`MemoryRecent`, `MemorySearch`, `MemoryNoteAdd`, etc.) and safe headless mower diagnostics (`ServiceHealthReport`, `MowerRuntimeSnapshot`, `HardwareProbe`, etc.). See `docs/pi-memory.md`.
