@@ -20,14 +20,33 @@ This project is inspired by the design goals of `winremote-mcp`, adapted for Lin
 
 ## Installation
 
+Requirements:
+- Python **3.11+**
+- Linux desktop session (Raspberry Pi OS / Debian-based environment)
+
+Install from this repository:
+
 ```bash
-pip install -e .
+git clone https://github.com/acredsfan/pi-control-mcp.git
+cd pi-control-mcp
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install .
 ```
 
 Optional extras:
 
 ```bash
-pip install -e .[ocr,test]
+# OCR support
+python -m pip install .[ocr]
+
+# Backend-specific helpers
+python -m pip install .[wayland]
+python -m pip install .[x11]
+
+# Development/test tooling
+python -m pip install .[test]
 ```
 
 ## Quickstart
@@ -40,6 +59,7 @@ Default behavior:
 - Tier 1 + Tier 2 enabled
 - Tier 3 disabled
 - Local-only safety defaults unless overridden
+- Config auto-load path: `./pi-control.toml` then `~/.config/pi-control-mcp/pi-control.toml`
 
 ## Tier and tool controls
 
